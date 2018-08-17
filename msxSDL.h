@@ -70,7 +70,7 @@ struct Sprite {
 	uint8_t color;
 };
 Sprite SA[N_SPRITES]; // Sprite Attribute
-uint8_t SG[N_SPRITES][8];
+uint8_t SG[256][8];
 
 uint8_t PN[TILE_HEIGHT][TILE_WIDTH]; // Pattern Name Table
 uint8_t GT[3][256][8]; // Pattern Generator Table

@@ -1,2 +1,2 @@
 main: main.cc *.h
-	g++ -o main main.cc -lSDL2
+	g++ -std=c++14 -o main main.cc -lSDL2
