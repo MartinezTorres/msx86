@@ -418,22 +418,27 @@ bool L1_levelMain() {
 	
 		uint8_t x0 = (player.pos.x + player.hitbox.x)>>7;
 		uint8_t x1 = (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
+		uint8_t x0m = (player.pos.x + player.hitbox.x-1)>>7;
+		uint8_t x1p = (player.pos.x + player.hitbox.x + player.hitbox.dx+1)>>7;
 		uint8_t y0 = 23-((player.pos.y + player.hitbox.y)>>7);
 		uint8_t y1 = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
+		uint8_t y0m = 23-((player.pos.y + player.hitbox.y-1)>>7);
+		uint8_t y1p = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
+
 		
 		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << std::endl;
 //		usleep(100000);
 		
-		if ( player.speed.y<=0 and ( (map.tiles[y0][x0] | map.tiles[y0][x1]) >= ('a') ) ) { // Collision below
+		if ( player.speed.y<=0 and ( (map.tiles[y0m][x0] | map.tiles[y0m][x1]) >= ('a') ) ) { // Collision below
 			
 			player.state = ST_RESTING;
-			player.pos.y = (uint16_t(24-y0)<<7) - player.hitbox.y;			
+			player.pos.y = (uint16_t(24-y0)<<7) - player.hitbox.y + 0x10;			
 			player.speed.y = 0;
 
 			std::cerr << "col: " << player.pos.y << std::endl;
 		}
 
-		if ( player.speed.x<=0 and ( (map.tiles[y0][x0] | map.tiles[y1][x0]) >= ('a') ) ) { // Collision left
+		if ( player.speed.x<=0 and ( (map.tiles[y0][x0m] | map.tiles[y1][x0m]) >= ('a') ) ) { // Collision left
 			
 		//	player.state = ST_RESTING;
 			player.acc.x = -player.acc.x; 
