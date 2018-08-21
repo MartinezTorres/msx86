@@ -1,4 +1,7 @@
 #include "msxSDL.h"
+#include <unistd.h>
+
+#define cropped(a,b,c) (a<(b)?(b):(a>(c)?(c):a))
 
 bool (*state_ptr)();
 bool I0_init();
@@ -188,12 +191,19 @@ struct TRect16 {
 	int16_t x,y,dx,dy;
 };
 
+struct uint8_tp {
+	int8_t x,y;
+};
+
 struct TPair16 {
 	int16_t x,y;
 };
 
 struct TMap {
-	int8_t tileMap[16];
+	
+	TPair16 pos;
+	uint8_tp initPos = {2, 2};
+	uint8_t tiles[24][128];
 };
 
 struct TEntity {
@@ -209,13 +219,15 @@ struct TEntity {
 
 struct TLevelState {
 	
-	TPair16 cameraPos;	
-	TEntity entities[32];
 	uint32_t frameN;
+	bool jumpReleased = true;
+	
+	
+	TMap map;
+	TEntity entities[32];
 };
 
 TLevelState levelState;
-bool jumpReleased = true;
 
 enum { T_PLAYER };
 enum { ST_RESTING, ST_JUMP0, ST_JUMP1, ST_JUMP2 };
@@ -299,24 +311,53 @@ bool M0_menu() {	auto &player = levelState.entities[0];
 
 bool L0_levelInit() {
 	
-	levelState.cameraPos.x=0x0000;
-	levelState.cameraPos.y=0x0000;
+	levelState.map.pos.x=0x0000;
+	levelState.map.pos.y=0x0000;
 	
-	for (uint8_t i8=0; i8<32, i8++)
-		levelState.entities.enabled = false;
+	for (uint8_t i8=0; i8<32; i8++)
+		levelState.entities[i8].enabled = false;
 	levelState.frameN = 0;
 	
 	auto &player = levelState.entities[0];
 
 	player.enabled = true;
 	player.type = T_PLAYER;
-	player.pos = {0x1000,0x600};
+	player.pos = {0x200,0x200};
 	player.speed = {0x0,0x40};
 	player.acc = {0x0,0x0};
 	player.facing = 0x1;
 	player.state = ST_JUMP0;
 	player.step = 0;
 	player.hitbox = {0x00,0x00,0x79,0x79};
+	
+	const char mapInfo[] = 
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"a                                                                                                                              a"
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+	//std::cerr << sizeof(levelState.map.tiles) << " " << sizeof(mapInfo) << std::endl;
+	memcpy(levelState.map.tiles, mapInfo, sizeof(levelState.map.tiles));
 	
 	
 //int isJumping=0;
@@ -327,12 +368,13 @@ bool L0_levelInit() {
 }
 
 bool L1_levelMain() {
-	
+
+	auto &map = levelState.map;	
 	auto &player = levelState.entities[0];
 	if (player.enabled) {
 
 		if (player.speed.x>=0) player.acc.x = std::max(-player.speed.x,-0x1);
-		if (player.speed.x<=0) player.acc.y = std::min(-player.speed.y, 0x1);
+		if (player.speed.x<=0) player.acc.x = std::min(-player.speed.x, 0x1);
 		
 		if (keys[SDLK_RIGHT%256]) {
 			if (player.facing>=0)
@@ -348,50 +390,95 @@ bool L1_levelMain() {
 				player.acc.x=-0x1;
 		}
 
-		if (keys[SDLK_DOWN%256]) {
-		}
+		if (keys[SDLK_DOWN%256]) {}
 
-		if (keys[SDLK_UP%256]) {
-		}
+		if (keys[SDLK_UP%256]) {}
 
 		if (keys[' ']) {
-			if (player.state<ST_JUMP2 and jumpReleased) {
+			if (player.state<ST_JUMP2 and levelState.jumpReleased) {
 	//			speedy = 0x5000;
 				player.speed.y = 0x40;
 				player.state++;
-				jumpReleased = false;
+				levelState.jumpReleased = false;
 			} else {
-				accy = -0x2;
+				player.acc.y = -0x2;
 			}
 		} else {
-			accy=-0x9;
-			jumpReleased = true;
+			player.acc.y=-0x09;
+			levelState.jumpReleased = true;
 		}
 		
-		speedx += accx;
-		speedy += accy;
-		speedx = std::max(speedx,-0x2900);
-		speedx = std::min(speedx, 0x2900);
-		speedy = std::max(speedy,-0xF000);
-		speedy = std::min(speedy, 0x5000);
-	
+		player.speed.x += player.acc.x;
+		player.speed.y += player.acc.y;
+		player.speed.x = cropped(player.speed.x,-0x29,0x29);
+		player.speed.y = cropped(player.speed.y,-0x7F,0x50);
 		
+		player.pos.x += player.speed.x;
+		player.pos.y += player.speed.y;
+	
+		uint8_t x0 = (player.pos.x + player.hitbox.x)>>7;
+		uint8_t x1 = (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
+		uint8_t y0 = 23-((player.pos.y + player.hitbox.y)>>7);
+		uint8_t y1 = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
+		
+		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << std::endl;
+//		usleep(100000);
+		
+		if ( player.speed.y<=0 and ( (map.tiles[y0][x0] | map.tiles[y0][x1]) >= ('a') ) ) { // Collision below
+			
+			player.state = ST_RESTING;
+			player.pos.y = (uint16_t(24-y0)<<7) - player.hitbox.y;			
+			player.speed.y = 0;
+
+			std::cerr << "col: " << player.pos.y << std::endl;
+		}
+
+		if ( player.speed.x<=0 and ( (map.tiles[y0][x0] | map.tiles[y1][x0]) >= ('a') ) ) { // Collision left
+			
+		//	player.state = ST_RESTING;
+			player.acc.x = -player.acc.x; 
+			player.speed.x = -player.speed.x; 
+//			player.pos.y = (uint16_t(24-y0)<<7) - player.hitbox.y;			
+			player.speed.y = 0;
+
+//			std::cerr << "col: " << player.pos.y << std::endl;
+		}
+		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << " " << "X" << std::endl;
 	}
 	
-		
-	for (uint8_t i8=0; i8<32, i8++) {
-		if (levelState.entities.enabled) {
-			switch (levelState.entities.type) {
+	for (uint8_t i8=1; i8<32; i8++) {
+		if (levelState.entities[i8].enabled) {
+			switch (levelState.entities[i8].type) {
 				case T_PLAYER:
 					break;
 				default:
 					break;				
 			}
-			
-			
 		}
 	}
 
+	
+	
+	SA[0].x =         (player.pos.x+0x8-map.pos.x)>>4;
+	SA[0].y = 24*8-8-((player.pos.y+0x8-map.pos.y)>>4);
+
+	SA[0].pattern = 1;
+	SA[0].color = BDarkYellow;
+	
+	
+	for (int i=0; i<TILE_HEIGHT; i++) {
+		for (int j=0; j<TILE_WIDTH; j++) {
+			int x4=(map.pos.x+0x20)>>6;
+			if (x4&1) {
+//				PN[i][j]=2*map[(j+x4/2)%MAP_WIDTH][i]+1*map[(j+(x4+1)/2)%MAP_WIDTH][i];
+			} else {
+				PN[23-i][j]=3*map.tiles[i][j+(x4>>1)];
+			}
+		}
+	}
+	
+	
+/*
 
 	//posy = std::max(posy,0x40000);
 	//if (posy==0x40000) isJumping=0;
@@ -444,7 +531,7 @@ bool L1_levelMain() {
 				PN[i][j]=3*map[(j+x4/2)%MAP_WIDTH][i];
 			}
 		}
-	}
+	}*/
 
 //	state_ptr = L1_levelMain;
 	return true;
