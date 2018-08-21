@@ -155,9 +155,7 @@ int mainLoop() {
 		std::cout << "Failed to initialize!" << std::endl;
 		return -1;
 	}
-	
-	initAll();
-		
+			
 	while (updateLoop()) {
 		
 		
