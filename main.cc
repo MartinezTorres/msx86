@@ -328,7 +328,7 @@ bool L0_levelInit() {
 	player.facing = 0x1;
 	player.state = ST_JUMP0;
 	player.step = 0;
-	player.hitbox = {0x00,0x00,0x79,0x79};
+	player.hitbox = {0x10,0x10,0x69,0x69};
 	
 	const char mapInfo[] = 
 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -336,22 +336,22 @@ bool L0_levelInit() {
 "a                                                                                                                              a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
+"a                    aaaaaaa                                                                                                   a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
+"a                     aaaaaa                                                                                                   a"
+"a   aaaaa a                                                                                                                    a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
+"a              aaaaa a                                                                                                         a"
+"a                                                                                                                              a"
+"a     aaaaa                                                                                                                    a"
+"a                                                                                                                              a"
+"a            aaaaaa                                                                                                            a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
+"a    aaaaa                                                                                                                     a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -413,29 +413,36 @@ bool L1_levelMain() {
 		player.speed.x = cropped(player.speed.x,-0x29,0x29);
 		player.speed.y = cropped(player.speed.y,-0x7F,0x50);
 		
-		player.pos.x += player.speed.x;
-		player.pos.y += player.speed.y;
 	
-		uint8_t x0 = (player.pos.x + player.hitbox.x)>>7;
-		uint8_t x1 = (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
-		uint8_t x0m = (player.pos.x + player.hitbox.x-1)>>7;
-		uint8_t x1p = (player.pos.x + player.hitbox.x + player.hitbox.dx+1)>>7;
-		uint8_t y0 = 23-((player.pos.y + player.hitbox.y)>>7);
-		uint8_t y1 = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
+		uint8_t x0 =      (player.pos.x + player.hitbox.x)>>7;
+		uint8_t x1 =      (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
+		uint8_t x0m =     (player.pos.x + player.hitbox.x-1)>>7;
+		uint8_t x1p =     (player.pos.x + player.hitbox.x + player.hitbox.dx+1)>>7;
+		uint8_t y0 =  23-((player.pos.y + player.hitbox.y)>>7);
+		uint8_t y1 =  23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
 		uint8_t y0m = 23-((player.pos.y + player.hitbox.y-1)>>7);
 		uint8_t y1p = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
 
 		
 		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << std::endl;
 //		usleep(100000);
+
+		std::cerr << int(map.tiles[23][4]) << " " << int(map.tiles[22][4]) << " " << int(map.tiles[21][4]) << " " << int(map.tiles[20][4]) << std::endl;
 		
 		if ( player.speed.y<=0 and ( (map.tiles[y0m][x0] | map.tiles[y0m][x1]) >= ('a') ) ) { // Collision below
 			
 			player.state = ST_RESTING;
-			player.pos.y = (uint16_t(24-y0)<<7) - player.hitbox.y + 0x10;			
+			
+			player.pos.y = (uint16_t(24-y0m)<<7) - player.hitbox.y;			
 			player.speed.y = 0;
 
 			std::cerr << "col: " << player.pos.y << std::endl;
+
+
+			y0 =  23-((player.pos.y + player.hitbox.y)>>7);
+			y1 =  23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
+			y0m = 23-((player.pos.y + player.hitbox.y-1)>>7);
+			y1p = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
 		}
 
 		if ( player.speed.x<=0 and ( (map.tiles[y0][x0m] | map.tiles[y1][x0m]) >= ('a') ) ) { // Collision left
@@ -449,6 +456,11 @@ bool L1_levelMain() {
 //			std::cerr << "col: " << player.pos.y << std::endl;
 		}
 		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << " " << "X" << std::endl;
+
+		player.pos.x += player.speed.x;
+		player.pos.y += player.speed.y;
+
+		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << " " << "Y" << std::endl;
 	}
 	
 	for (uint8_t i8=1; i8<32; i8++) {
@@ -465,7 +477,7 @@ bool L1_levelMain() {
 	
 	
 	SA[0].x =         (player.pos.x+0x8-map.pos.x)>>4;
-	SA[0].y = 24*8-8-((player.pos.y+0x8-map.pos.y)>>4);
+	SA[0].y = 24*8-8-1-((player.pos.y+0x8-map.pos.y)>>4);
 
 	SA[0].pattern = 1;
 	SA[0].color = BDarkYellow;
@@ -477,7 +489,7 @@ bool L1_levelMain() {
 			if (x4&1) {
 //				PN[i][j]=2*map[(j+x4/2)%MAP_WIDTH][i]+1*map[(j+(x4+1)/2)%MAP_WIDTH][i];
 			} else {
-				PN[23-i][j]=3*map.tiles[i][j+(x4>>1)];
+				PN[i][j]=3*map.tiles[i][j+(x4>>1)];
 			}
 		}
 	}
