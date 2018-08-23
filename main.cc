@@ -77,6 +77,83 @@ uint8_t mySG[][8] = {
 };
 
 
+uint8_t myBG[8][8] = {
+
+	{ 	0b10100001,
+		0b00100000,
+		0b00100111,
+		0b00000000,
+		0b00000000,
+		0b11100100,
+		0b00000100,
+		0b10000101 },
+
+	{ 	0b01111110,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b01111110 },
+
+	{ 	0b01111110,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b10000001,
+		0b01111110 },
+
+	{ 	0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000 },
+
+	{ 	0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000 },
+
+	{ 	0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000 },
+
+	{ 	0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000 },
+
+	{ 	0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000 },
+
+};
+
+
 
 /*
 bool updateLoopOld() {
@@ -192,7 +269,7 @@ struct TRect16 {
 };
 
 struct uint8_tp {
-	int8_t x,y;
+	uint8_t x,y;
 };
 
 struct TPair16 {
@@ -202,6 +279,7 @@ struct TPair16 {
 struct TMap {
 	
 	TPair16 pos;
+	uint8_tp size = {128,24};
 	uint8_tp initPos = {2, 2};
 	uint8_t tiles[24][128];
 };
@@ -244,47 +322,8 @@ bool I0_init() {
 	for (int j=0; j<127; j++)
 		for (int i=0; i<8; i++)
 			SG[j+128][i] = reverse8(SG[j][i]);
-	
-	memcpy(PN[0],"Unsafe",6);
-	
-	SA[0].y=20;
-	SA[0].x=30;
-	SA[0].pattern=0x00;
-	SA[0].color=BLightGreen;
 
-	SA[1].y=21;
-	SA[1].x=40;
-	SA[1].pattern=0x01;
-	SA[1].color=BLightGreen;
-
-	SA[2].y=22;
-	SA[2].x=50;
-	SA[2].pattern=0x02;
-	SA[2].color=BLightGreen;
-
-	SA[3].y=23;
-	SA[3].x=60;
-	SA[3].pattern=0x03;
-	SA[3].color=BLightGreen;
-	
-	SA[4].y=24;
-	SA[4].x=70;
-	SA[4].pattern=0x82;
-	SA[4].color=BLightGreen;
-
-	SA[5].y=25;
-	SA[5].x=80;
-	SA[5].pattern=0x83;
-	SA[5].color=BLightGreen;
-	
-	for (int i=0; i<MAP_WIDTH; i++)
-		for (int j=0; j<MAP_HEIGHT; j++)
-			map[i][j]=!(rand()%4);
-
-	for (int i=0; i<MAP_WIDTH; i++)
-		for (int j=0; j<16; j++)
-			map[i][j]=0;
-
+/*
 	memset(GT[0][1], 0x0A ,8);
 	memset(GT[0][2], 0xA0 ,8);
 	memset(GT[0][3], 0xAA ,8);
@@ -295,9 +334,27 @@ bool I0_init() {
 			
 	memset(GT[2][1], 0x0A ,8);
 	memset(GT[2][2], 0xA0 ,8);
-	memset(GT[2][3], 0xAA ,8);
+	memset(GT[2][3], 0xAA ,8);*/
+	
+	for (int i=0; i<3; i++)
+		for (int j=0; j<8; j++)
+			for (int k=0; k<8; k++)
+				for (int l=0; l<8; l++)
+					GT[i][(j<<3)+k][l]=(myBG[j][l]<<4)+(myBG[k][l]>>4);
+
+	for (int i=0; i<3; i++)
+		for (int j=0; j<8; j++)
+			for (int l=0; l<8; l++)
+				GT[i][0xF0+j][l]=myBG[j][l];
+
+
 	
 	memset(CT, BBlack+FLightGreen ,sizeof(CT));
+
+std::cerr << sizeof(CT[0][0]) << std::endl;
+	for (int i=0; i<3; i++)
+		memset(CT[i][0xF0], BBlack+FDarkBlue, sizeof(CT[i][0xF0]));
+	
 	
 	state_ptr = &M0_menu;
 }
@@ -357,11 +414,21 @@ bool L0_levelInit() {
 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 	//std::cerr << sizeof(levelState.map.tiles) << " " << sizeof(mapInfo) << std::endl;
-	memcpy(levelState.map.tiles, mapInfo, sizeof(levelState.map.tiles));
-	
-	
-//int isJumping=0;
-//int jumpReleased=1;
+
+//	for (int i=0; i<24; i++)
+//		memcpy(levelState.map.tiles[23-i], &mapInfo[i*128], sizeof(levelState.map.tiles[23-i]));
+
+	for (int i=0; i<levelState.map.size.y; i++) {
+		for (int j=0; j<levelState.map.size.x; j++) {
+			switch(mapInfo[i*128+j]) {
+			case 'a':
+				levelState.map.tiles[23-i][j] = 1+((i+j)&1);
+				break;
+			default:
+				levelState.map.tiles[23-i][j] = 0;
+			}
+		}
+	}
 
 	state_ptr = L1_levelMain;
 	return true;
@@ -410,42 +477,40 @@ bool L1_levelMain() {
 		
 		player.speed.x += player.acc.x;
 		player.speed.y += player.acc.y;
-		player.speed.x = cropped(player.speed.x,-0x29,0x29);
+		player.speed.x = cropped(player.speed.x,-0x20,0x20);
 		player.speed.y = cropped(player.speed.y,-0x7F,0x50);
 		
 	
-		uint8_t x0 =      (player.pos.x + player.hitbox.x)>>7;
-		uint8_t x1 =      (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
-		uint8_t x0m =     (player.pos.x + player.hitbox.x-1)>>7;
-		uint8_t x1p =     (player.pos.x + player.hitbox.x + player.hitbox.dx+1)>>7;
-		uint8_t y0 =  23-((player.pos.y + player.hitbox.y)>>7);
-		uint8_t y1 =  23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
-		uint8_t y0m = 23-((player.pos.y + player.hitbox.y-1)>>7);
-		uint8_t y1p = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
+		uint8_t x0 =  (player.pos.x + player.hitbox.x)>>7;
+		uint8_t x1 =  (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
+		uint8_t x0m = (player.pos.x + player.hitbox.x-1)>>7;
+		uint8_t x1p = (player.pos.x + player.hitbox.x + player.hitbox.dx+1)>>7;
+		uint8_t y0 =  ((player.pos.y + player.hitbox.y)>>7);
+		uint8_t y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
+		uint8_t y0m = ((player.pos.y + player.hitbox.y-1)>>7);
+		uint8_t y1p = ((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
 
 		
 		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << std::endl;
 //		usleep(100000);
 
-		std::cerr << int(map.tiles[23][4]) << " " << int(map.tiles[22][4]) << " " << int(map.tiles[21][4]) << " " << int(map.tiles[20][4]) << std::endl;
-		
-		if ( player.speed.y<=0 and ( (map.tiles[y0m][x0] | map.tiles[y0m][x1]) >= ('a') ) ) { // Collision below
+		if ( player.speed.y<=0 and ( (map.tiles[y0m][x0] | map.tiles[y0m][x1]) > 0 ) ) { // Collision below
 			
 			player.state = ST_RESTING;
 			
-			player.pos.y = (uint16_t(24-y0m)<<7) - player.hitbox.y;			
+			player.pos.y = (uint16_t(y0m+1)<<7) - player.hitbox.y;			
 			player.speed.y = 0;
 
 			std::cerr << "col: " << player.pos.y << std::endl;
 
 
-			y0 =  23-((player.pos.y + player.hitbox.y)>>7);
-			y1 =  23-((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
-			y0m = 23-((player.pos.y + player.hitbox.y-1)>>7);
-			y1p = 23-((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
+			y0 =  ((player.pos.y + player.hitbox.y)>>7);
+			y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
+			y0m = ((player.pos.y + player.hitbox.y-1)>>7);
+			y1p = ((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
 		}
 
-		if ( player.speed.x<=0 and ( (map.tiles[y0][x0m] | map.tiles[y1][x0m]) >= ('a') ) ) { // Collision left
+		if ( player.speed.x<=0 and ( (map.tiles[y0][x0m] | map.tiles[y1][x0m]) > 0 ) ) { // Collision left
 			
 		//	player.state = ST_RESTING;
 			player.acc.x = -player.acc.x; 
@@ -473,8 +538,18 @@ bool L1_levelMain() {
 			}
 		}
 	}
+	
+	player.facing = 0;
+//	if (player.speed.x<0) player.facing=-1;
+//	if (player.speed.x>0) player.facing=-1;
 
 	
+	
+	map.pos.x = player.pos.x-((0xF8+player.facing*0x40)<<3);
+	
+	map.pos.x = cropped(map.pos.x,0,(map.size.x-32)*0x80-1);
+	
+	std::cerr << player.pos.x << " " << map.pos.x << " " << ((map.pos.x-player.pos.x)>>7) << std::endl;
 	
 	SA[0].x =         (player.pos.x+0x8-map.pos.x)>>4;
 	SA[0].y = 24*8-8-1-((player.pos.y+0x8-map.pos.y)>>4);
@@ -487,9 +562,9 @@ bool L1_levelMain() {
 		for (int j=0; j<TILE_WIDTH; j++) {
 			int x4=(map.pos.x+0x20)>>6;
 			if (x4&1) {
-//				PN[i][j]=2*map[(j+x4/2)%MAP_WIDTH][i]+1*map[(j+(x4+1)/2)%MAP_WIDTH][i];
+				PN[i][j]=(map.tiles[23-i][j+(x4>>1)]<<3)+map.tiles[23-i][j+((x4+1)>>1)];
 			} else {
-				PN[i][j]=3*map.tiles[i][j+(x4>>1)];
+				PN[i][j]=0xF0+map.tiles[23-i][j+(x4>>1)];
 			}
 		}
 	}
