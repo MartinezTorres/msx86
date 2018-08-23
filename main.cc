@@ -28,12 +28,12 @@ uint8_t mySG[][8] = {
 		0b00000000,
 		0b00000000 },
 
-	{ 	0b00000000,
-		0b00111100,
+	{ 	0b00111100,
+		0b01000010,
+		0b01010110,
 		0b01000010,
 		0b10000001,
-		0b10000001,
-		0b10000001,
+		0b10011101,
 		0b01000010,
 		0b00111100 },
 
@@ -79,14 +79,14 @@ uint8_t mySG[][8] = {
 
 uint8_t myBG[8][8] = {
 
-	{ 	0b10100001,
+	{ 	0b00000000,
 		0b00100000,
-		0b00100111,
 		0b00000000,
 		0b00000000,
-		0b11100100,
 		0b00000100,
-		0b10000101 },
+		0b00001000,
+		0b00000000,
+		0b00000000 },
 
 	{ 	0b01111110,
 		0b10000001,
@@ -349,7 +349,7 @@ bool I0_init() {
 
 
 	
-	memset(CT, BBlack+FLightGreen ,sizeof(CT));
+	memset(CT, BBlack+FDarkBlue ,sizeof(CT));
 
 std::cerr << sizeof(CT[0][0]) << std::endl;
 	for (int i=0; i<3; i++)
@@ -540,8 +540,8 @@ bool L1_levelMain() {
 	}
 	
 	player.facing = 0;
-//	if (player.speed.x<0) player.facing=-1;
-//	if (player.speed.x>0) player.facing=-1;
+	if (player.speed.x<0) player.facing=-1;
+	if (player.speed.x>0) player.facing= 1;
 
 	
 	
@@ -556,6 +556,10 @@ bool L1_levelMain() {
 
 	SA[0].pattern = 1;
 	SA[0].color = BDarkYellow;
+	static int framen=0;
+	framen++;
+	if (player.facing== 1) SA[0].pattern = 0x02+((framen/4)%2);
+	if (player.facing==-1) SA[0].pattern = 0x82+((framen/4)%2);
 	
 	
 	for (int i=0; i<TILE_HEIGHT; i++) {
