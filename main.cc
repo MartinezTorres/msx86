@@ -544,9 +544,10 @@ bool L1_levelMain() {
 	if (player.speed.x>0) player.facing= 1;
 
 	
+	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x40)<<3) - map.pos.x)>>5;
+	map.pos.x += idealMapSpeed; 
 	
-	map.pos.x = player.pos.x-((0xF8+player.facing*0x40)<<3);
-	
+	map.pos.x = ((map.pos.x+0x20)>>6)<<6;
 	map.pos.x = cropped(map.pos.x,0,(map.size.x-32)*0x80-1);
 	
 	std::cerr << player.pos.x << " " << map.pos.x << " " << ((map.pos.x-player.pos.x)>>7) << std::endl;
