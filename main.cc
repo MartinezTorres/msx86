@@ -428,7 +428,7 @@ bool L1_levelMain() {
 	if (player.speed.x>0) player.facing= 1;
 
 	
-	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x80)<<4) - map.pos.x)>>5;
+	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x60)<<4) - map.pos.x)>>5;
 	map.pos.x += idealMapSpeed; 
 	
 	map.pos.x = cropped(map.pos.x,0,((map.size.x-32)<<8)-1);
