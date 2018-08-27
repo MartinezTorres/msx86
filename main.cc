@@ -441,6 +441,7 @@ bool L1_levelMain() {
 	{
 		int x2=(displayMapPosX+0x20)>>6;
 		int v4=(displayMapPosY+0x40)>>7;
+		std::cout << x2 << " " << v4 << std::endl;
 		for (int i=0; i<TILE_HEIGHT; i++) {
 			uint8_t *p00 = &map.tiles[23-i+(v4>>1)][(x2>>2)];
 			uint8_t *p10 = &map.tiles[23-i+(v4>>1)+1][(x2>>2)];
@@ -448,8 +449,8 @@ bool L1_levelMain() {
 			uint8_t *p11 = p10+1;
 			for (int j=0; j<TILE_WIDTH; j++) {
 				uint t = (*p00 | *p01 | *p10 | *p11)<<7;
-				t += v4 << 6;
-				t += x2 << 4;
+				t += (v4&0x1) << 6;
+				t += (x2&0x3) << 4;
 				t += (!!*p00)<<3;
 				t += (!!*p10)<<2;
 				t += (!!*p01)<<1;
