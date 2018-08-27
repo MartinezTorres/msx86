@@ -28,12 +28,12 @@ uint8_t mySG[][8] = {
 		0b00000000,
 		0b00000000 },
 
-	{ 	0b00111100,
-		0b01000010,
-		0b01010110,
-		0b01000010,
+	{ 	0b00111110,
+		0b01000001,
+		0b01011001,
+		0b01000001,
 		0b10000001,
-		0b10011101,
+		0b10111101,
 		0b01000010,
 		0b00111100 },
 
@@ -80,6 +80,15 @@ uint8_t mySG[][8] = {
 uint8_t myBG[8][8] = {
 
 	{ 	0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000,
+		0b00000000 },
+
+	{ 	0b00000000,
 		0b00100000,
 		0b00000000,
 		0b00000000,
@@ -89,31 +98,22 @@ uint8_t myBG[8][8] = {
 		0b00000000 },
 
 	{ 	0b01111110,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
+		0b10100101,
+		0b11011011,
+		0b10100101,
+		0b11011011,
+		0b10100101,
+		0b11011011,
 		0b01111110 },
 
 	{ 	0b01111110,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
-		0b10000001,
+		0b11010101,
+		0b10101011,
+		0b11010101,
+		0b10101011,
+		0b11010101,
+		0b10101011,
 		0b01111110 },
-
-	{ 	0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000 },
 
 	{ 	0b00000000,
 		0b00000000,
@@ -152,117 +152,6 @@ uint8_t myBG[8][8] = {
 		0b00000000 },
 
 };
-
-
-
-/*
-bool updateLoopOld() {
-	
-	if (speedx>=0) accx = std::max(-speedx,-0xD0);
-	if (speedx<=0) accx = std::min(-speedx, 0xD0);
-	
-	if (keys[SDLK_RIGHT%256]) {
-		if (speedx>=0)
-			accx=0xE4;
-		else
-			accx=0x1A0;
-	}
-
-	if (keys[SDLK_LEFT%256]) {
-		if (speedx<=0)
-			accx=-0xE4;
-		else
-			accx=-0x1A0;
-	}
-
-	if (keys[SDLK_DOWN%256]) {
-	}
-
-	if (keys[SDLK_UP%256]) {
-	}
-
-	if (keys[SDLK_UP%256]) {
-	}
-
-	if (keys[' ']) {
-		if (isJumping<2 and jumpReleased==1) {
-//			speedy = 0x5000;
-			speedy = 0x4000;
-			isJumping++;
-			jumpReleased = 0;
-		} else {
-			accy = -0x280;
-		}
-	} else {
-		accy=-0x900;
-		jumpReleased = 1;
-	}
-	
-	speedx+=accx;
-	speedy+=accy;
-	speedx = std::max(speedx,-0x2900);
-	speedx = std::min(speedx, 0x2900);
-	speedy = std::max(speedy,-0xF000);
-	speedy = std::min(speedy, 0x5000);
-
-	//posy = std::max(posy,0x40000);
-	//if (posy==0x40000) isJumping=0;
-	bool collision = map[(posx+0x4000)/0x8000%512][24-(posy+0x4000)/0x8000];
-	if (collision) speedy=std::max(0,speedy);
-	if (collision and speedy<=0) isJumping=0;
-
-	posx+=speedx;
-	posy+=speedy;
-	
-
-	if (facing== 1 and speedx<0 or accx<-0x1000) facing=-1;
-	if (facing==-1 and speedx>0 or accx> 0x1000) facing= 1;
-	
-	static int winX = posx - TILE_WIDTH*4*0x1000;
-	static int winY = 0;
-	
-	int posScreenXold = (posx-winX+0x800)/0x1000;
-	int posScreenYold = winY-8*8-8-posy/0x1000;
-	
-	int winXspeed = (posScreenXold-TILE_WIDTH*4)*0x2900/(TILE_WIDTH*2);
-	winXspeed = round(winXspeed/double(0x1000))*0x1000;
-	
-	winX += winXspeed;
-
-	framen++;
-//	if (framen%3) return true;
-	
-	SA[0].x = (posx-winX+0x800)/0x1000;
-	SA[0].y = 24*8-8-(posy-winY+0x800)/0x1000;
-
-	if (facing== 1) SA[0].pattern = 0x02+((framen/4)%2);
-	if (facing==-1) SA[0].pattern = 0x82+((framen/4)%2);
-	if (abs(speedx)<0x100) SA[0].pattern = 1;
-	
-	SA[0].color = BDarkYellow;
-	if (isJumping==2) SA[0].color = BCyan;
-
-	//std::cout << map[(posx+0x4000)/0x8000%512][24-(posy+0x4000)/0x8000] << std::endl;
-
-//	SA[0].color = collision?BDarkYellow:BCyan;
-
-	
-	for (int i=0; i<TILE_HEIGHT; i++) {
-		for (int j=0; j<TILE_WIDTH; j++) {
-			int x4=winX/0x4000;
-			if (x4%2) {
-				PN[i][j]=2*map[(j+x4/2)%MAP_WIDTH][i]+1*map[(j+(x4+1)/2)%MAP_WIDTH][i];
-			} else {
-				PN[i][j]=3*map[(j+x4/2)%MAP_WIDTH][i];
-			}
-		}
-	}
-
-	return true;
-}*/
-
-
-
 
 struct TRect16 {
 	int16_t x,y,dx,dy;
@@ -322,19 +211,6 @@ bool I0_init() {
 	for (int j=0; j<127; j++)
 		for (int i=0; i<8; i++)
 			SG[j+128][i] = reverse8(SG[j][i]);
-
-/*
-	memset(GT[0][1], 0x0A ,8);
-	memset(GT[0][2], 0xA0 ,8);
-	memset(GT[0][3], 0xAA ,8);
-
-	memset(GT[1][1], 0x0A ,8);
-	memset(GT[1][2], 0xA0 ,8);
-	memset(GT[1][3], 0xAA ,8);
-			
-	memset(GT[2][1], 0x0A ,8);
-	memset(GT[2][2], 0xA0 ,8);
-	memset(GT[2][3], 0xAA ,8);*/
 	
 	for (int i=0; i<3; i++)
 		for (int j=0; j<8; j++)
@@ -347,20 +223,15 @@ bool I0_init() {
 			for (int l=0; l<8; l++)
 				GT[i][0xF0+j][l]=myBG[j][l];
 
-
-	
 	memset(CT, BBlack+FDarkBlue ,sizeof(CT));
 
-std::cerr << sizeof(CT[0][0]) << std::endl;
 	for (int i=0; i<3; i++)
 		memset(CT[i][0xF0], BBlack+FDarkBlue, sizeof(CT[i][0xF0]));
-	
 	
 	state_ptr = &M0_menu;
 }
 
-bool M0_menu() {	auto &player = levelState.entities[0];
-
+bool M0_menu() {	
 
 	state_ptr = L0_levelInit;
 	return true;
@@ -379,13 +250,13 @@ bool L0_levelInit() {
 
 	player.enabled = true;
 	player.type = T_PLAYER;
-	player.pos = {0x200,0x200};
-	player.speed = {0x0,0x40};
+	player.pos = {0x400,0x400};
+	player.speed = {0x0,0x80};
 	player.acc = {0x0,0x0};
 	player.facing = 0x1;
 	player.state = ST_JUMP0;
 	player.step = 0;
-	player.hitbox = {0x10,0x10,0x69,0x69};
+	player.hitbox = {0x20,0x20,0xDF,0xDF};
 	
 	const char mapInfo[] = 
 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -413,16 +284,11 @@ bool L0_levelInit() {
 "a                                                                                                                              a"
 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-	//std::cerr << sizeof(levelState.map.tiles) << " " << sizeof(mapInfo) << std::endl;
-
-//	for (int i=0; i<24; i++)
-//		memcpy(levelState.map.tiles[23-i], &mapInfo[i*128], sizeof(levelState.map.tiles[23-i]));
-
 	for (int i=0; i<levelState.map.size.y; i++) {
 		for (int j=0; j<levelState.map.size.x; j++) {
 			switch(mapInfo[i*128+j]) {
 			case 'a':
-				levelState.map.tiles[23-i][j] = 1+((i+j)&1);
+				levelState.map.tiles[23-i][j] = 2;
 				break;
 			default:
 				levelState.map.tiles[23-i][j] = 0;
@@ -440,21 +306,21 @@ bool L1_levelMain() {
 	auto &player = levelState.entities[0];
 	if (player.enabled) {
 
-		if (player.speed.x>=0) player.acc.x = std::max(-player.speed.x,-0x1);
-		if (player.speed.x<=0) player.acc.x = std::min(-player.speed.x, 0x1);
+		if (player.speed.x>=0) player.acc.x = std::max(-player.speed.x,-0x2);
+		if (player.speed.x<=0) player.acc.x = std::min(-player.speed.x, 0x2);
 		
 		if (keys[SDLK_RIGHT%256]) {
 			if (player.facing>=0)
-				player.acc.x=0x2;
+				player.acc.x=0x4;
 			else
-				player.acc.x=0x1;
+				player.acc.x=0x2;
 		}
 
 		if (keys[SDLK_LEFT%256]) {
 			if (player.facing<=0)
-				player.acc.x=-0x2;
+				player.acc.x=-0x4;
 			else
-				player.acc.x=-0x1;
+				player.acc.x=-0x2;
 		}
 
 		if (keys[SDLK_DOWN%256]) {}
@@ -464,68 +330,119 @@ bool L1_levelMain() {
 		if (keys[' ']) {
 			if (player.state<ST_JUMP2 and levelState.jumpReleased) {
 	//			speedy = 0x5000;
-				player.speed.y = 0x40;
+				player.speed.y = 0x80;
 				player.state++;
 				levelState.jumpReleased = false;
 			} else {
-				player.acc.y = -0x2;
+				player.acc.y = -0x4;
 			}
 		} else {
-			player.acc.y=-0x09;
+			player.acc.y=-0x12;
 			levelState.jumpReleased = true;
 		}
 		
 		player.speed.x += player.acc.x;
 		player.speed.y += player.acc.y;
-		player.speed.x = cropped(player.speed.x,-0x20,0x20);
-		player.speed.y = cropped(player.speed.y,-0x7F,0x50);
-		
+		player.speed.x = cropped(player.speed.x,-0x40,0x40);
+		player.speed.y = cropped(player.speed.y,-0xFF,0xA0);
+		player.pos.x += player.speed.x;
+		player.pos.y += player.speed.y;
 	
-		uint8_t x0 =  (player.pos.x + player.hitbox.x)>>7;
-		uint8_t x1 =  (player.pos.x + player.hitbox.x + player.hitbox.dx)>>7;
-		uint8_t x0m = (player.pos.x + player.hitbox.x-1)>>7;
-		uint8_t x1p = (player.pos.x + player.hitbox.x + player.hitbox.dx+1)>>7;
-		uint8_t y0 =  ((player.pos.y + player.hitbox.y)>>7);
-		uint8_t y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
-		uint8_t y0m = ((player.pos.y + player.hitbox.y-1)>>7);
-		uint8_t y1p = ((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
+		uint8_t x0 =  (player.pos.x + player.hitbox.x)>>8;
+		uint8_t x1 =  (player.pos.x + player.hitbox.x + player.hitbox.dx)>>8;
+		uint8_t y0 =  (player.pos.y + player.hitbox.y)>>8;
+		uint8_t y1 =  (player.pos.y + player.hitbox.y + player.hitbox.dy)>>8;
+
+		uint8_t x0r =  (player.pos.x + player.hitbox.x)&0xFF;
+		uint8_t x1r =  (player.pos.x + player.hitbox.x + player.hitbox.dx)&0xFF;
+		uint8_t y0r =  (player.pos.y + player.hitbox.y)&0xFF;
+		uint8_t y1r =  (player.pos.y + player.hitbox.y + player.hitbox.dy)&0xFF;
+		
+		uint8_t colVec = 0;
+		if (map.tiles[y0][x0]>0) colVec +=0x1;
+		if (map.tiles[y0][x1]>0) colVec +=0x2;
+		if (map.tiles[y1][x0]>0) colVec +=0x4;
+		if (map.tiles[y1][x1]>0) colVec +=0x8;
 
 		
-		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << std::endl;
-//		usleep(100000);
-
-		if ( player.speed.y<=0 and ( (map.tiles[y0m][x0] | map.tiles[y0m][x1]) > 0 ) ) { // Collision below
+		switch (colVec) {
+		case 0x01:
+			if (x0r>y0r) { // left
+				
+			} else { // top
+			
+			}
+			break;
+		case 0x02:
+			if ((127-x1r)>y0r) { // right
+				
+			} else { // top
+			
+			}
+			break;
+		case 0x04:
+			if (x0r>(127-y1r)) { // left
+				
+			} else { // bottom
+			
+			}
+		case 0x08:
+			if ((127-x1r)>(127-y1r)) { // right
+				
+			} else { // bottom
+			
+			}
+			break;
+		default:
+			break;
+		}
+		
+		
+		if ( player.speed.y<0 and ( (map.tiles[y0][x0] | map.tiles[y0][x1]) > 0 ) ) { // Collision below
 			
 			player.state = ST_RESTING;
 			
-			player.pos.y = (uint16_t(y0m+1)<<7) - player.hitbox.y;			
+			player.pos.y = (uint16_t(y0+1)<<8) - player.hitbox.y;			
 			player.speed.y = 0;
 
-			std::cerr << "col: " << player.pos.y << std::endl;
+			std::cerr << "col0: " << player.pos.y << std::endl;
 
 
 			y0 =  ((player.pos.y + player.hitbox.y)>>7);
 			y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
-			y0m = ((player.pos.y + player.hitbox.y-1)>>7);
-			y1p = ((player.pos.y + player.hitbox.y + player.hitbox.dy+1)>>7);
 		}
-
-		if ( player.speed.x<=0 and ( (map.tiles[y0][x0m] | map.tiles[y1][x0m]) > 0 ) ) { // Collision left
+		
+		if (  player.speed.y>0 and ( (map.tiles[y1][x0] | map.tiles[y1][x1]) > 0 ) ) { // Collision above
 			
-		//	player.state = ST_RESTING;
-			player.acc.x = -player.acc.x; 
-			player.speed.x = -player.speed.x; 
-//			player.pos.y = (uint16_t(24-y0)<<7) - player.hitbox.y;			
+			player.pos.y = (uint16_t(y1)<<8) - player.hitbox.y - player.hitbox.dy;			
 			player.speed.y = 0;
 
-//			std::cerr << "col: " << player.pos.y << std::endl;
+			std::cerr << "col1: " << player.pos.y << std::endl;
+
+
+			y0 =  ((player.pos.y + player.hitbox.y)>>7);
+			y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
 		}
+
+		if ( player.speed.x<0 and ( (map.tiles[y0][x0] | map.tiles[y1][x0]) > 0 ) ) { // Collision left
+			
+			player.speed.x += 0x08; 
+			player.pos.x = (uint16_t(x0+1)<<8) - player.hitbox.x;			
+
+			std::cerr << "col2: " << player.pos.y << std::endl;
+
+		} 
+		if ( player.speed.x>0 and  ( (map.tiles[y0][x1] | map.tiles[y1][x1]) > 0 ) ) { // Collision left
+			
+			player.speed.x -= 0x08; 
+			player.pos.x = (uint16_t(x1)<<8) - player.hitbox.x - player.hitbox.dx;			
+
+			std::cerr << "col3: " << player.pos.y << std::endl;
+
+		}
+
 		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << " " << "X" << std::endl;
 
-		player.pos.x += player.speed.x;
-		player.pos.y += player.speed.y;
-
-		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << " " << "Y" << std::endl;
 	}
 	
 	for (uint8_t i8=1; i8<32; i8++) {
@@ -544,28 +461,37 @@ bool L1_levelMain() {
 	if (player.speed.x>0) player.facing= 1;
 
 	
-	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x40)<<3) - map.pos.x)>>5;
+	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x40)<<4) - map.pos.x)>>5;
 	map.pos.x += idealMapSpeed; 
 	
-	map.pos.x = ((map.pos.x+0x20)>>6)<<6;
-	map.pos.x = cropped(map.pos.x,0,(map.size.x-32)*0x80-1);
+	map.pos.x = cropped(map.pos.x,0,((map.size.x-32)<<8)-1);
 	
-	std::cerr << player.pos.x << " " << map.pos.x << " " << ((map.pos.x-player.pos.x)>>7) << std::endl;
+	int displayMapPosX = ((map.pos.x+0x40)>>7)<<7;
 	
-	SA[0].x =         (player.pos.x+0x8-map.pos.x)>>4;
-	SA[0].y = 24*8-8-1-((player.pos.y+0x8-map.pos.y)>>4);
+	int spritePosX = (player.pos.x+0x10-displayMapPosX)>>5;
+
+	static int nSkipped = 0;
+	nSkipped++;
+	if (nSkipped<2) {
+		if (spritePosX < SA[0].x and player.speed.x>0) return true;
+		if (spritePosX > SA[0].x and player.speed.x<0) return true;
+	}
+	nSkipped=0;
+	
+	SA[0].x =           spritePosX;
+	SA[0].y = 24*8-8-1-((player.pos.y+0x10-map.pos.y)>>5);
 
 	SA[0].pattern = 1;
 	SA[0].color = BDarkYellow;
 	static int framen=0;
 	framen++;
-	if (player.facing== 1) SA[0].pattern = 0x02+((framen/4)%2);
-	if (player.facing==-1) SA[0].pattern = 0x82+((framen/4)%2);
+	if (player.facing== 1) SA[0].pattern = 0x02+((framen/3)%2);
+	if (player.facing==-1) SA[0].pattern = 0x82+((framen/3)%2);
 	
 	
 	for (int i=0; i<TILE_HEIGHT; i++) {
 		for (int j=0; j<TILE_WIDTH; j++) {
-			int x4=(map.pos.x+0x20)>>6;
+			int x4=(displayMapPosX+0x40)>>7;
 			if (x4&1) {
 				PN[i][j]=(map.tiles[23-i][j+(x4>>1)]<<3)+map.tiles[23-i][j+((x4+1)>>1)];
 			} else {
@@ -575,62 +501,7 @@ bool L1_levelMain() {
 	}
 	
 	
-/*
-
-	//posy = std::max(posy,0x40000);
-	//if (posy==0x40000) isJumping=0;
-	bool collision = map[(posx+0x4000)/0x8000%512][24-(posy+0x4000)/0x8000];
-	if (collision) speedy=std::max(0,speedy);
-	if (collision and speedy<=0) isJumping=0;
-
-	posx+=speedx;
-	posy+=speedy;
-	
-
-	if (facing== 1 and speedx<0 or accx<-0x1000) facing=-1;
-	if (facing==-1 and speedx>0 or accx> 0x1000) facing= 1;
-	
-	static int winX = posx - TILE_WIDTH*4*0x1000;
-	static int winY = 0;
-	
-	int posScreenXold = (posx-winX+0x800)/0x1000;
-	int posScreenYold = winY-8*8-8-posy/0x1000;
-	
-	int winXspeed = (posScreenXold-TILE_WIDTH*4)*0x2900/(TILE_WIDTH*2);
-	winXspeed = round(winXspeed/double(0x1000))*0x1000;
-	
-	winX += winXspeed;
-
-	framen++;
-//	if (framen%3) return true;
-	
-	SA[0].x = (posx-winX+0x800)/0x1000;
-	SA[0].y = 24*8-8-(posy-winY+0x800)/0x1000;
-
-	if (facing== 1) SA[0].pattern = 0x02+((framen/4)%2);
-	if (facing==-1) SA[0].pattern = 0x82+((framen/4)%2);
-	if (abs(speedx)<0x100) SA[0].pattern = 1;
-	
-	SA[0].color = BDarkYellow;
-	if (isJumping==2) SA[0].color = BCyan;
-
-	//std::cout << map[(posx+0x4000)/0x8000%512][24-(posy+0x4000)/0x8000] << std::endl;
-
-//	SA[0].color = collision?BDarkYellow:BCyan;
-
-	
-	for (int i=0; i<TILE_HEIGHT; i++) {
-		for (int j=0; j<TILE_WIDTH; j++) {
-			int x4=winX/0x4000;
-			if (x4%2) {
-				PN[i][j]=2*map[(j+x4/2)%MAP_WIDTH][i]+1*map[(j+(x4+1)/2)%MAP_WIDTH][i];
-			} else {
-				PN[i][j]=3*map[(j+x4/2)%MAP_WIDTH][i];
-			}
-		}
-	}*/
-
-//	state_ptr = L1_levelMain;
+	state_ptr = L1_levelMain;
 	return true;
 }
 
