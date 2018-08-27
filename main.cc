@@ -77,16 +77,7 @@ uint8_t mySG[][8] = {
 };
 
 
-uint8_t myBG[8][8] = {
-
-	{ 	0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000 },
+uint8_t myBG[2][8] = {
 
 	{ 	0b00000000,
 		0b00100000,
@@ -105,52 +96,6 @@ uint8_t myBG[8][8] = {
 		0b10100101,
 		0b11011011,
 		0b01111110 },
-
-	{ 	0b01111110,
-		0b11010101,
-		0b10101011,
-		0b11010101,
-		0b10101011,
-		0b11010101,
-		0b10101011,
-		0b01111110 },
-
-	{ 	0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000 },
-
-	{ 	0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000 },
-
-	{ 	0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000 },
-
-	{ 	0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000,
-		0b00000000 },
-
 };
 
 struct TRect16 {
@@ -212,7 +157,7 @@ bool I0_init() {
 		for (int i=0; i<8; i++)
 			SG[j+128][i] = reverse8(SG[j][i]);
 	
-	for (int i=0; i<3; i++)
+/*	for (int i=0; i<3; i++)
 		for (int j=0; j<8; j++)
 			for (int k=0; k<8; k++)
 				for (int l=0; l<8; l++)
@@ -221,7 +166,19 @@ bool I0_init() {
 	for (int i=0; i<3; i++)
 		for (int j=0; j<8; j++)
 			for (int l=0; l<8; l++)
-				GT[i][0xF0+j][l]=myBG[j][l];
+				GT[i][0xF0+j][l]=myBG[j][l];*/
+
+	for (int nt=0; nt<3; nt++)
+		for (int c=0; c<2; c++)
+			for (int v=0; v<2; v++)
+				for (int h=0; h<3; h++)
+					for (int t=0; t<16; t++)
+						for (int l=0; l<8; l++)
+							GT[nt][(c<<7)+(v<<6)+(h<<4)+t][l] = 
+								((t&0x8) and (l+(v<<4)  < 8)?myBG[c][l+(v<<4)  ]<<(  h*2):0)+ 
+								((t&0x4) and (l+(v<<4)  < 8)?myBG[c][l+(v<<4)  ]>>(8-h*2):0)+ 
+								((t&0x2) and (l+(v<<4)-8>=0)?myBG[c][l+(v<<4)-8]<<(  h*2):0)+ 
+								((t&0x1) and (l+(v<<4)-8>=0)?myBG[c][l+(v<<4)-8]>>(8-h*2):0);
 
 	memset(CT, BBlack+FDarkBlue ,sizeof(CT));
 
@@ -288,7 +245,7 @@ bool L0_levelInit() {
 		for (int j=0; j<levelState.map.size.x; j++) {
 			switch(mapInfo[i*128+j]) {
 			case 'a':
-				levelState.map.tiles[23-i][j] = 2;
+				levelState.map.tiles[23-i][j] = 3;
 				break;
 			default:
 				levelState.map.tiles[23-i][j] = 0;
@@ -310,17 +267,17 @@ bool L1_levelMain() {
 		if (player.speed.x<=0) player.acc.x = std::min(-player.speed.x, 0x2);
 		
 		if (keys[SDLK_RIGHT%256]) {
-			if (player.facing>=0)
+//			if (player.facing>=0)
 				player.acc.x=0x4;
-			else
-				player.acc.x=0x2;
+//			else
+//				player.acc.x=0x2;
 		}
 
 		if (keys[SDLK_LEFT%256]) {
-			if (player.facing<=0)
+//			if (player.facing<=0)
 				player.acc.x=-0x4;
-			else
-				player.acc.x=-0x2;
+//			else
+//				player.acc.x=-0x2;
 		}
 
 		if (keys[SDLK_DOWN%256]) {}
@@ -329,11 +286,11 @@ bool L1_levelMain() {
 
 		if (keys[' ']) {
 			if (player.state<ST_JUMP0 and levelState.jumpReleased) {
-				player.speed.y = 0x80;
+				player.speed.y = 0x74;
 				player.state++;
 				levelState.jumpReleased = false;
 			} else {
-				player.acc.y = -0x4;
+				player.acc.y = -0x5;
 			}
 		} else {
 			player.acc.y=-0x12;
@@ -386,8 +343,8 @@ bool L1_levelMain() {
 			
 		case 0xF-0x1: colResponse = RIGHT+TOP;    break;
 		case 0xF-0x2: colResponse = LEFT +TOP;    break;
-		case 0xF-0x4: colResponse = RIGHT+BOTTOM; break;
-		case 0xF-0x8: colResponse = LEFT +BOTTOM; break;
+		case 0xF-2-4: case 0xF-0x4: colResponse = RIGHT+BOTTOM; break;
+		case 0xF-1-8: case 0xF-0x8: colResponse = LEFT +BOTTOM; break;
 
 		case 0x1+0x2: colResponse = BOTTOM; break;
 		case 0x4+0x8: colResponse = TOP;    break;
@@ -468,7 +425,7 @@ bool L1_levelMain() {
 	if (player.facing==-1) SA[0].pattern = 0x82+((framen/3)%2);
 	
 	
-	for (int i=0; i<TILE_HEIGHT; i++) {
+/*	for (int i=0; i<TILE_HEIGHT; i++) {
 		for (int j=0; j<TILE_WIDTH; j++) {
 			int x4=(displayMapPosX+0x40)>>7;
 			if (x4&1) {
@@ -477,8 +434,31 @@ bool L1_levelMain() {
 				PN[i][j]=0xF0+map.tiles[23-i][j+(x4>>1)];
 			}
 		}
-	}
+	}*/
 	
+	int displayMapPosY = 0;
+
+	{
+		int x2=(displayMapPosX+0x20)>>6;
+		int v4=(displayMapPosY+0x40)>>7;
+		for (int i=0; i<TILE_HEIGHT; i++) {
+			uint8_t *p00 = &map.tiles[23-i+(v4>>1)][(x2>>2)];
+			uint8_t *p10 = &map.tiles[23-i+(v4>>1)+1][(x2>>2)];
+			uint8_t *p01 = p00+1;
+			uint8_t *p11 = p10+1;
+			for (int j=0; j<TILE_WIDTH; j++) {
+				uint t = (*p00 | *p01 | *p10 | *p11)<<7;
+				t += v4 << 6;
+				t += x2 << 4;
+				t += (!!*p00)<<3;
+				t += (!!*p10)<<2;
+				t += (!!*p01)<<1;
+				t += (!!*p11)<<0;
+				PN[i][j]=t;
+				p00++; p10++; p01++; p11++; 
+			}
+		}	
+	}
 	
 	state_ptr = L1_levelMain;
 	return true;
