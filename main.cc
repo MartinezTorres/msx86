@@ -329,7 +329,6 @@ bool L1_levelMain() {
 
 		if (keys[' ']) {
 			if (player.state<ST_JUMP2 and levelState.jumpReleased) {
-	//			speedy = 0x5000;
 				player.speed.y = 0x80;
 				player.state++;
 				levelState.jumpReleased = false;
@@ -354,95 +353,63 @@ bool L1_levelMain() {
 		uint8_t y1 =  (player.pos.y + player.hitbox.y + player.hitbox.dy)>>8;
 
 		uint8_t x0r =  (player.pos.x + player.hitbox.x)&0xFF;
-		uint8_t x1r =  (player.pos.x + player.hitbox.x + player.hitbox.dx)&0xFF;
+		uint8_t x1r =  0xFF - ((player.pos.x + player.hitbox.x + player.hitbox.dx)&0xFF);
 		uint8_t y0r =  (player.pos.y + player.hitbox.y)&0xFF;
-		uint8_t y1r =  (player.pos.y + player.hitbox.y + player.hitbox.dy)&0xFF;
+		uint8_t y1r =  0xFF - ((player.pos.y + player.hitbox.y + player.hitbox.dy)&0xFF);
 		
 		uint8_t colVec = 0;
 		if (map.tiles[y0][x0]>0) colVec +=0x1;
 		if (map.tiles[y0][x1]>0) colVec +=0x2;
 		if (map.tiles[y1][x0]>0) colVec +=0x4;
 		if (map.tiles[y1][x1]>0) colVec +=0x8;
-
+		
+		enum { LEFT=0x1, RIGHT=0x2, TOP=0x4, BOTTOM=0x8};
+		
+		uint8_t colResponse = 0;
 		
 		switch (colVec) {
-		case 0x01:
-			if (x0r>y0r) { // left
-				
-			} else { // top
+		case 0x01: if (x0r>y0r) colResponse = LEFT;  else colResponse = BOTTOM;	break;
+		case 0x02: if (x1r>y0r) colResponse = RIGHT; else colResponse = BOTTOM;	break;
+		case 0x04: if (x0r>y1r) colResponse = LEFT;  else colResponse = TOP;    break;
+		case 0x08: if (x1r>y1r) colResponse = RIGHT; else colResponse = TOP;    break;
 			
-			}
-			break;
-		case 0x02:
-			if ((127-x1r)>y0r) { // right
-				
-			} else { // top
-			
-			}
-			break;
-		case 0x04:
-			if (x0r>(127-y1r)) { // left
-				
-			} else { // bottom
-			
-			}
-		case 0x08:
-			if ((127-x1r)>(127-y1r)) { // right
-				
-			} else { // bottom
-			
-			}
-			break;
+		case 0xF-0x1: colResponse = RIGHT+TOP;    break;
+		case 0xF-0x2: colResponse = LEFT +TOP;    break;
+		case 0xF-0x4: colResponse = RIGHT+BOTTOM; break;
+		case 0xF-0x8: colResponse = LEFT +BOTTOM; break;
+
+		case 0x1+0x2: colResponse = BOTTOM; break;
+		case 0x4+0x8: colResponse = TOP;    break;
+		case 0x1+0x4: colResponse = LEFT;   break;
+		case 0x2+0x8: colResponse = RIGHT;  break;
+		
 		default:
 			break;
 		}
 		
-		
-		if ( player.speed.y<0 and ( (map.tiles[y0][x0] | map.tiles[y0][x1]) > 0 ) ) { // Collision below
+		if ( colResponse & BOTTOM ) { // Collision below
 			
 			player.state = ST_RESTING;
-			
 			player.pos.y = (uint16_t(y0+1)<<8) - player.hitbox.y;			
 			player.speed.y = 0;
-
-			std::cerr << "col0: " << player.pos.y << std::endl;
-
-
-			y0 =  ((player.pos.y + player.hitbox.y)>>7);
-			y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
 		}
 		
-		if (  player.speed.y>0 and ( (map.tiles[y1][x0] | map.tiles[y1][x1]) > 0 ) ) { // Collision above
+		if ( colResponse & TOP ) { // Collision above
 			
 			player.pos.y = (uint16_t(y1)<<8) - player.hitbox.y - player.hitbox.dy;			
 			player.speed.y = 0;
-
-			std::cerr << "col1: " << player.pos.y << std::endl;
-
-
-			y0 =  ((player.pos.y + player.hitbox.y)>>7);
-			y1 =  ((player.pos.y + player.hitbox.y + player.hitbox.dy)>>7);
 		}
 
-		if ( player.speed.x<0 and ( (map.tiles[y0][x0] | map.tiles[y1][x0]) > 0 ) ) { // Collision left
+		if ( colResponse & LEFT ) { // Collision left
 			
 			player.speed.x += 0x08; 
 			player.pos.x = (uint16_t(x0+1)<<8) - player.hitbox.x;			
-
-			std::cerr << "col2: " << player.pos.y << std::endl;
-
 		} 
-		if ( player.speed.x>0 and  ( (map.tiles[y0][x1] | map.tiles[y1][x1]) > 0 ) ) { // Collision left
+		if ( colResponse & RIGHT ) { // Collision left
 			
 			player.speed.x -= 0x08; 
 			player.pos.x = (uint16_t(x1)<<8) - player.hitbox.x - player.hitbox.dx;			
-
-			std::cerr << "col3: " << player.pos.y << std::endl;
-
 		}
-
-		std::cerr << int(x0) << " " << int(y0) << " " << player.pos.y << " " << player.speed.y << " " << player.acc.y << " " << "X" << std::endl;
-
 	}
 	
 	for (uint8_t i8=1; i8<32; i8++) {
@@ -461,7 +428,7 @@ bool L1_levelMain() {
 	if (player.speed.x>0) player.facing= 1;
 
 	
-	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x40)<<4) - map.pos.x)>>5;
+	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x80)<<4) - map.pos.x)>>5;
 	map.pos.x += idealMapSpeed; 
 	
 	map.pos.x = cropped(map.pos.x,0,((map.size.x-32)<<8)-1);
