@@ -263,9 +263,9 @@ bool L0_levelInit() {
 "a                                                                                                                              a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
-"a                                                                                                                              a"
-"a                    aaaaaaa                                                                                                   a"
-"a                                                                                                                              a"
+"                                                                                                                               a"
+"                     aaaaaaa                                                                                                   a"
+"                                                                                                                               a"
 "a                                                                                                                              a"
 "a                                                                                                                              a"
 "a                     aaaaaa                                                                                                   a"
@@ -274,15 +274,15 @@ bool L0_levelInit() {
 "a                                                                                                                              a"
 "a              aaaaa a                                                                                                         a"
 "a                                                                                                                              a"
-"a     aaaaa                                                                                                                    a"
-"a                                                                                                                              a"
-"a            aaaaaa                                                                                                            a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"a    aaaaa                                                                                                                     a"
-"a                                                                                                                              a"
-"a                                                                                                                              a"
-"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+"a     aaaaa           a a aa  aaa        aaaa                                                                                  a"
+"a                                a   a       a                                                                                 a"
+"a            aaaaaa                aaa       a                                                                                 a"
+"a                               a                                                                                              a"
+"a                        a  a             a a                                                                                  a"
+"a    aaaaa                a    a          a                                                                                    a"
+"a                                        aa      aaaa                                                                          a"
+"a                                 aaaa                                                                                         a"
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 	for (int i=0; i<levelState.map.size.y; i++) {
 		for (int j=0; j<levelState.map.size.x; j++) {
@@ -328,7 +328,7 @@ bool L1_levelMain() {
 		if (keys[SDLK_UP%256]) {}
 
 		if (keys[' ']) {
-			if (player.state<ST_JUMP2 and levelState.jumpReleased) {
+			if (player.state<ST_JUMP0 and levelState.jumpReleased) {
 				player.speed.y = 0x80;
 				player.state++;
 				levelState.jumpReleased = false;
@@ -346,6 +346,17 @@ bool L1_levelMain() {
 		player.speed.y = cropped(player.speed.y,-0xFF,0xA0);
 		player.pos.x += player.speed.x;
 		player.pos.y += player.speed.y;
+	
+
+		if (player.pos.y<0) {
+			state_ptr = L1_levelDeath;
+			return true;
+		}
+
+		if (player.pos.x<0) {
+			state_ptr = L1_levelEnd;
+			return true;
+		}
 	
 		uint8_t x0 =  (player.pos.x + player.hitbox.x)>>8;
 		uint8_t x1 =  (player.pos.x + player.hitbox.x + player.hitbox.dx)>>8;
@@ -410,6 +421,7 @@ bool L1_levelMain() {
 			player.speed.x -= 0x08; 
 			player.pos.x = (uint16_t(x1)<<8) - player.hitbox.x - player.hitbox.dx;			
 		}
+		
 	}
 	
 	for (uint8_t i8=1; i8<32; i8++) {
@@ -428,7 +440,7 @@ bool L1_levelMain() {
 	if (player.speed.x>0) player.facing= 1;
 
 	
-	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x60)<<4) - map.pos.x)>>5;
+	int idealMapSpeed = (player.pos.x-((0xF8-player.facing*0x40)<<4) - map.pos.x)>>4;
 	map.pos.x += idealMapSpeed; 
 	
 	map.pos.x = cropped(map.pos.x,0,((map.size.x-32)<<8)-1);
@@ -474,12 +486,14 @@ bool L1_levelMain() {
 
 bool L1_levelDeath() {
 
+	std::cout << "Death" << std::endl;
 	state_ptr = M0_menu;
 	return true;
 }
 
 bool L1_levelEnd() {
 
+	std::cout << "Goal reached!" << std::endl;
 	state_ptr = M0_menu;
 	return true;
 }
