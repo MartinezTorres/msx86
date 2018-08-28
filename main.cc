@@ -77,25 +77,54 @@ uint8_t mySG[][8] = {
 };
 
 
-uint8_t myBG[2][8] = {
+uint8_t myBG[8][8][2] = {
 
-	{ 	0b00000000,
-		0b00100000,
-		0b00000000,
-		0b00000000,
-		0b00000100,
-		0b00001000,
-		0b00000000,
-		0b00000000 },
+	{ 	{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack },
+		{ 0b00000000, BBlack + FBlack } },
 
-	{ 	0b01111110,
-		0b10100101,
-		0b11011011,
-		0b10100101,
-		0b11011011,
-		0b10100101,
-		0b11011011,
-		0b01111110 },
+	{ 	{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00100000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000100, BBlack + FDarkBlue },
+		{ 0b00010000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue } },
+
+	{ 	{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00100000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000100, BBlack + FDarkRed },
+		{ 0b00010000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed } },
+
+	{ 	{ 0b01111110, BBlack + FDarkBlue },
+		{ 0b10100101, BBlack + FDarkBlue },
+		{ 0b11011011, BBlack + FDarkBlue },
+		{ 0b10100101, BBlack + FDarkBlue },
+		{ 0b11011011, BBlack + FDarkBlue },
+		{ 0b10100101, BBlack + FDarkBlue },
+		{ 0b11011011, BBlack + FDarkBlue },
+		{ 0b01111110, BBlack + FDarkBlue } },
+
+	{ 	{ 0b01111110, BBlack + FDarkRed },
+		{ 0b10100101, BBlack + FDarkRed },
+		{ 0b11011011, BBlack + FDarkRed },
+		{ 0b10100101, BBlack + FDarkRed },
+		{ 0b11011011, BBlack + FDarkRed },
+		{ 0b10100101, BBlack + FDarkRed },
+		{ 0b11011011, BBlack + FDarkRed },
+		{ 0b01111110, BBlack + FDarkRed } },
+
+
 };
 
 struct TRect16 {
