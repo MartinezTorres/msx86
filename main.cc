@@ -3,13 +3,14 @@
 
 #define cropped(a,b,c) (a<(b)?(b):(a>(c)?(c):a))
 
-bool (*state_ptr)();
-bool I0_init();
-bool M0_menu();
-bool L0_levelInit();
-bool L1_levelMain();
-bool L1_levelDeath();
-bool L1_levelEnd();
+typedef void *(*T_f)(void);
+
+T_f I0_init();
+T_f M0_menu();
+T_f L0_levelInit();
+T_f L1_levelMain();
+T_f L1_levelDeath();
+T_f L1_levelEnd();
 
 
 static const uint16_t MAP_HEIGHT = 32;
@@ -77,16 +78,18 @@ uint8_t mySG[][8] = {
 };
 
 
-uint8_t myBG[8][8][2] = {
+// BG is organized as | 1 | p0 | x0 | x1 | l0 | l1 | r0 | r1
 
-	{ 	{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack },
-		{ 0b00000000, BBlack + FBlack } },
+uint8_t myBG0[4][8][2] = {
+
+	{ 	{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue },
+		{ 0b00000000, BBlack + FDarkBlue } },
 
 	{ 	{ 0b00000000, BBlack + FDarkBlue },
 		{ 0b00100000, BBlack + FDarkBlue },
@@ -97,14 +100,14 @@ uint8_t myBG[8][8][2] = {
 		{ 0b00010000, BBlack + FDarkBlue },
 		{ 0b00000000, BBlack + FDarkBlue } },
 
-	{ 	{ 0b00000000, BBlack + FDarkRed },
-		{ 0b00100000, BBlack + FDarkRed },
-		{ 0b00000000, BBlack + FDarkRed },
-		{ 0b00000000, BBlack + FDarkRed },
-		{ 0b00000000, BBlack + FDarkRed },
-		{ 0b00000100, BBlack + FDarkRed },
-		{ 0b00010000, BBlack + FDarkRed },
-		{ 0b00000000, BBlack + FDarkRed } },
+	{ 	{ 0b01111110, BBlack + FDarkBlue },
+		{ 0b10100101, BBlack + FDarkBlue },
+		{ 0b11011011, BBlack + FDarkBlue },
+		{ 0b10100101, BBlack + FDarkBlue },
+		{ 0b11011011, BBlack + FDarkBlue },
+		{ 0b10100101, BBlack + FDarkBlue },
+		{ 0b11011011, BBlack + FDarkBlue },
+		{ 0b01111110, BBlack + FDarkBlue } },
 
 	{ 	{ 0b01111110, BBlack + FDarkBlue },
 		{ 0b10100101, BBlack + FDarkBlue },
@@ -114,6 +117,28 @@ uint8_t myBG[8][8][2] = {
 		{ 0b10100101, BBlack + FDarkBlue },
 		{ 0b11011011, BBlack + FDarkBlue },
 		{ 0b01111110, BBlack + FDarkBlue } },
+};
+
+
+uint8_t myBG1[4][8][2] = {
+
+	{ 	{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed } },
+
+	{ 	{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00100000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed },
+		{ 0b00000100, BBlack + FDarkRed },
+		{ 0b00010000, BBlack + FDarkRed },
+		{ 0b00000000, BBlack + FDarkRed } },
 
 	{ 	{ 0b01111110, BBlack + FDarkRed },
 		{ 0b10100101, BBlack + FDarkRed },
@@ -124,7 +149,14 @@ uint8_t myBG[8][8][2] = {
 		{ 0b11011011, BBlack + FDarkRed },
 		{ 0b01111110, BBlack + FDarkRed } },
 
-
+	{ 	{ 0b01111110, BBlack + FDarkRed },
+		{ 0b10100101, BBlack + FDarkRed },
+		{ 0b11011011, BBlack + FDarkRed },
+		{ 0b10100101, BBlack + FDarkRed },
+		{ 0b11011011, BBlack + FDarkRed },
+		{ 0b10100101, BBlack + FDarkRed },
+		{ 0b11011011, BBlack + FDarkRed },
+		{ 0b01111110, BBlack + FDarkRed } },
 };
 
 struct TRect16 {
@@ -173,7 +205,7 @@ TLevelState levelState;
 enum { T_PLAYER };
 enum { ST_RESTING, ST_JUMP0, ST_JUMP1, ST_JUMP2 };
 
-bool I0_init() {
+T_f I0_init() {
 
 	for (int i=0; i<sizeof(SG); i+=2) {
 		((uint8_t *)SG)[i+0] = 0XAA;
@@ -185,45 +217,31 @@ bool I0_init() {
 	for (int j=0; j<127; j++)
 		for (int i=0; i<8; i++)
 			SG[j+128][i] = reverse8(SG[j][i]);
+
+	for (int nt=0; nt<3; nt++) {
+		for (int h=0; h<4; h++) {
+			for (int cl=0; cl<4; cl++) {
+				for (int cr=0; cr<4; cr++) {
+					for (int l=0; l<8; l++) {
+						GT[nt][0x80+(h<<4)+(cl<<2)+(cr<<0)][l] = 
+							(myBG0[cl][l][0]<<(h*2)) + (myBG0[cr][l][0]>>(8-h*2));
+						CT[nt][0x80+(h<<4)+(cl<<2)+(cr<<0)][l] = 
+							std::max(myBG0[cl][l][1], myBG0[cr][l][1]);
+					}
+				}
+			}
+		}
+	}
 	
-/*	for (int i=0; i<3; i++)
-		for (int j=0; j<8; j++)
-			for (int k=0; k<8; k++)
-				for (int l=0; l<8; l++)
-					GT[i][(j<<3)+k][l]=(myBG[j][l]<<4)+(myBG[k][l]>>4);
-
-	for (int i=0; i<3; i++)
-		for (int j=0; j<8; j++)
-			for (int l=0; l<8; l++)
-				GT[i][0xF0+j][l]=myBG[j][l];*/
-
-	for (int nt=0; nt<3; nt++)
-		for (int c=0; c<2; c++)
-			for (int v=0; v<2; v++)
-				for (int h=0; h<3; h++)
-					for (int t=0; t<16; t++)
-						for (int l=0; l<8; l++)
-							GT[nt][(c<<7)+(v<<6)+(h<<4)+t][l] = 
-								((t&0x8) and (l+(v<<4)  < 8)?myBG[c][l+(v<<4)  ]<<(  h*2):0)+ 
-								((t&0x4) and (l+(v<<4)  < 8)?myBG[c][l+(v<<4)  ]>>(8-h*2):0)+ 
-								((t&0x2) and (l+(v<<4)-8>=0)?myBG[c][l+(v<<4)-8]<<(  h*2):0)+ 
-								((t&0x1) and (l+(v<<4)-8>=0)?myBG[c][l+(v<<4)-8]>>(8-h*2):0);
-
-	memset(CT, BBlack+FDarkBlue ,sizeof(CT));
-
-	for (int i=0; i<3; i++)
-		memset(CT[i][0xF0], BBlack+FDarkBlue, sizeof(CT[i][0xF0]));
-	
-	state_ptr = &M0_menu;
+	return T_f(M0_menu);
 }
 
-bool M0_menu() {	
+T_f M0_menu() {	
 
-	state_ptr = L0_levelInit;
-	return true;
+	return T_f(L0_levelInit);
 }
 
-bool L0_levelInit() {
+T_f L0_levelInit() {
 	
 	levelState.map.pos.x=0x0000;
 	levelState.map.pos.y=0x0000;
@@ -274,7 +292,7 @@ bool L0_levelInit() {
 		for (int j=0; j<levelState.map.size.x; j++) {
 			switch(mapInfo[i*128+j]) {
 			case 'a':
-				levelState.map.tiles[23-i][j] = 3;
+				levelState.map.tiles[23-i][j] = 2;
 				break;
 			default:
 				levelState.map.tiles[23-i][j] = 0;
@@ -282,11 +300,10 @@ bool L0_levelInit() {
 		}
 	}
 
-	state_ptr = L1_levelMain;
-	return true;
+	return T_f(L1_levelMain);
 }
 
-bool L1_levelMain() {
+T_f L1_levelMain() {
 
 	auto &map = levelState.map;	
 	auto &player = levelState.entities[0];
@@ -334,15 +351,11 @@ bool L1_levelMain() {
 		player.pos.y += player.speed.y;
 	
 
-		if (player.pos.y<0) {
-			state_ptr = L1_levelDeath;
-			return true;
-		}
+		if (player.pos.y<0) 
+			return T_f(L1_levelDeath);
 
-		if (player.pos.x<0) {
-			state_ptr = L1_levelEnd;
-			return true;
-		}
+		if (player.pos.x<0) 
+			return T_f(L1_levelEnd);
 	
 		uint8_t x0 =  (player.pos.x + player.hitbox.x)>>8;
 		uint8_t x1 =  (player.pos.x + player.hitbox.x + player.hitbox.dx)>>8;
@@ -431,15 +444,15 @@ bool L1_levelMain() {
 	
 	map.pos.x = cropped(map.pos.x,0,((map.size.x-32)<<8)-1);
 	
-	int displayMapPosX = ((map.pos.x+0x40)>>7)<<7;
+	int displayMapPosX = ((map.pos.x+0x20)>>6)<<6;
 	
 	int spritePosX = (player.pos.x+0x10-displayMapPosX)>>5;
 
 	static int nSkipped = 0;
 	nSkipped++;
-	if (nSkipped<2) {
-		if (spritePosX < SA[0].x and player.speed.x>0) return true;
-		if (spritePosX > SA[0].x and player.speed.x<0) return true;
+	if (nSkipped<0) {
+		if (spritePosX < SA[0].x and player.speed.x>0) return T_f(L1_levelMain);
+		if (spritePosX > SA[0].x and player.speed.x<0) return T_f(L1_levelMain);
 	}
 	nSkipped=0;
 	
@@ -469,50 +482,39 @@ bool L1_levelMain() {
 
 	{
 		int x2=(displayMapPosX+0x20)>>6;
-		int v4=(displayMapPosY+0x40)>>7;
-		std::cout << x2 << " " << v4 << std::endl;
+		uint8_t pv = 0x80 + ((x2&3)<<4);
+		std::cout << x2 << " " << int(((x2&3)<<4)) <<  std::endl;
 		for (int i=0; i<TILE_HEIGHT; i++) {
-			uint8_t *p00 = &map.tiles[23-i+(v4>>1)][(x2>>2)];
-			uint8_t *p10 = &map.tiles[23-i+(v4>>1)+1][(x2>>2)];
+			uint8_t *p00 = &map.tiles[23-i][(x2>>2)];
 			uint8_t *p01 = p00+1;
-			uint8_t *p11 = p10+1;
 			for (int j=0; j<TILE_WIDTH; j++) {
-				uint t = (*p00 | *p01 | *p10 | *p11)<<7;
-				t += (v4&0x1) << 6;
-				t += (x2&0x3) << 4;
-				t += (!!*p00)<<3;
-				t += (!!*p10)<<2;
-				t += (!!*p01)<<1;
-				t += (!!*p11)<<0;
-				PN[i][j]=t;
-				p00++; p10++; p01++; p11++; 
+				PN[i][j]= pv + (*p00<<2) + *p01;
+//				std::cout << int(*p00) << " " << int(*p01) << std::endl;
+				p00++; p01++; 
 			}
 		}	
 	}
 	
-	state_ptr = L1_levelMain;
-	return true;
+	return T_f(L1_levelMain);
 }
 
-bool L1_levelDeath() {
+T_f L1_levelDeath() {
 
 	std::cout << "Death" << std::endl;
-	state_ptr = M0_menu;
-	return true;
+	return T_f(M0_menu);
 }
 
-bool L1_levelEnd() {
+T_f L1_levelEnd() {
 
 	std::cout << "Goal reached!" << std::endl;
-	state_ptr = M0_menu;
-	return true;
+	return T_f(M0_menu);
 }
 
 
-
-bool updateLoop() { return (*state_ptr)(); }
+T_f state_ptr;
+bool updateLoop() { state_ptr = T_f((*state_ptr)()); return true;}
 int main(int argc, const char* argv[]) {
 	
-	state_ptr = &I0_init;
+	state_ptr = T_f(I0_init);
 	return mainLoop();
 }
