@@ -159,6 +159,8 @@ uint8_t myBG1[4][8][2] = {
 		{ 0b01111110, BBlack + FDarkRed } },
 };
 
+
+
 struct TRect16 {
 	int16_t x,y,dx,dy;
 };
@@ -170,6 +172,8 @@ struct uint8_tp {
 struct TPair16 {
 	int16_t x,y;
 };
+
+// Maximum map size: {16*8,4*8} 
 
 struct TMap {
 	
@@ -227,11 +231,17 @@ T_f I0_init() {
 							(myBG0[cl][l][0]<<(h*2)) + (myBG0[cr][l][0]>>(8-h*2));
 						CT[nt][0x80+(h<<4)+(cl<<2)+(cr<<0)][l] = 
 							std::max(myBG0[cl][l][1], myBG0[cr][l][1]);
+						GT[nt][0xC0+(h<<4)+(cl<<2)+(cr<<0)][l] = 
+							(myBG1[cl][l][0]<<(h*2)) + (myBG1[cr][l][0]>>(8-h*2));
+						CT[nt][0xC0+(h<<4)+(cl<<2)+(cr<<0)][l] = 
+							std::max(myBG1[cl][l][1], myBG1[cr][l][1]);
 					}
 				}
 			}
 		}
 	}
+	
+	
 	
 	return T_f(M0_menu);
 }
@@ -240,6 +250,7 @@ T_f M0_menu() {
 
 	return T_f(L0_levelInit);
 }
+
 
 T_f L0_levelInit() {
 	
@@ -457,7 +468,7 @@ T_f L1_levelMain() {
 	nSkipped=0;
 	
 	SA[0].x =           spritePosX;
-	SA[0].y = 24*8-8-1-((player.pos.y+0x10-map.pos.y)>>5);
+	SA[0].y = 20*8-8-1-((player.pos.y+0x10-map.pos.y)>>5);
 
 	SA[0].pattern = 1;
 	SA[0].color = BDarkYellow;
@@ -467,30 +478,15 @@ T_f L1_levelMain() {
 	if (player.facing==-1) SA[0].pattern = 0x82+((framen/3)%2);
 	
 	
-/*	for (int i=0; i<TILE_HEIGHT; i++) {
-		for (int j=0; j<TILE_WIDTH; j++) {
-			int x4=(displayMapPosX+0x40)>>7;
-			if (x4&1) {
-				PN[i][j]=(map.tiles[23-i][j+(x4>>1)]<<3)+map.tiles[23-i][j+((x4+1)>>1)];
-			} else {
-				PN[i][j]=0xF0+map.tiles[23-i][j+(x4>>1)];
-			}
-		}
-	}*/
-	
 	int displayMapPosY = 0;
-
 	{
 		int x2=(displayMapPosX+0x20)>>6;
 		uint8_t pv = 0x80 + ((x2&3)<<4);
-		std::cout << x2 << " " << int(((x2&3)<<4)) <<  std::endl;
-		for (int i=0; i<TILE_HEIGHT; i++) {
-			uint8_t *p00 = &map.tiles[23-i][(x2>>2)];
-			uint8_t *p01 = p00+1;
+		for (int i=0; i<20; i++) {
+			uint8_t *p = &map.tiles[19-i][(x2>>2)];
+			uint8_t old = *p++;
 			for (int j=0; j<TILE_WIDTH; j++) {
-				PN[i][j]= pv + (*p00<<2) + *p01;
-//				std::cout << int(*p00) << " " << int(*p01) << std::endl;
-				p00++; p01++; 
+				PN[i][j]= pv + (old<<2) + (old = *p++);
 			}
 		}	
 	}
