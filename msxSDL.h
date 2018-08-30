@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include <iostream>
 
 #include "font8x8_basic.h"
 
@@ -37,9 +36,9 @@ FMagenta=0xD0,
 FGray=0xE0,
 FWhite=0xF0};
 	
-struct RGB {
+typedef struct {
 	uint8_t r,g,b;
-};
+} RGB;
 
 const RGB colors[16] = {
 {   0,    0,    0},
@@ -60,15 +59,18 @@ const RGB colors[16] = {
 { 255,  255,  255}	
 };
 
-const int N_SPRITES=32;
-const int TILE_WIDTH = 32;
-const int TILE_HEIGHT = 24;
+#define N_SPRITES 32
+#define TILE_WIDTH 32
+#define TILE_HEIGHT 24
+
 uint8_t BD=BDarkBlue;
-struct Sprite {
+
+typedef struct {
 	uint8_t x,y;
 	uint8_t pattern;
 	uint8_t color;
-};
+} Sprite;
+
 Sprite SA[N_SPRITES]; // Sprite Attribute
 uint8_t SG[256][8];
 
@@ -78,19 +80,19 @@ uint8_t CT[3][256][8]; // Pattern Color Table
 
 
 // screen dimension constants
-const int TEX_WIDTH = TILE_WIDTH*8;
-const int TEX_HEIGHT = TILE_HEIGHT*8;
-const int SCREEN_WIDTH = TEX_WIDTH*4;
-const int SCREEN_HEIGHT = TEX_HEIGHT*4;
+#define TEX_WIDTH (TILE_WIDTH*8)
+#define TEX_HEIGHT (TILE_HEIGHT*8)
+#define SCREEN_WIDTH (TEX_WIDTH*4)
+#define SCREEN_HEIGHT (TEX_HEIGHT*4)
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Texture* tex = NULL;
 
-bool updateLoop();
-bool initAll();
+uint8_t updateLoop();
+uint8_t initAll();
 
-unsigned char reverse8(unsigned char b) {
+static uint8_t reverse8(uint8_t b) {
    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
@@ -98,25 +100,25 @@ unsigned char reverse8(unsigned char b) {
 }
 
 // initialize sdl
-bool initSDL() {
+static uint8_t initSDL() {
 	    
     // Intialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "SDL could not initialize! error: " << SDL_GetError() << "\n";
-        return false;
+        //std::cout << "SDL could not initialize! error: " << SDL_GetError() << "\n";
+        return -1;
 	}
 
 	// create window
 	gWindow = SDL_CreateWindow("SDL Skeleton", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (gWindow == NULL) {
-		std::cout << "Window could not be created! error: " << SDL_GetError() << "\n";
-        return false;
+		//std::cout << "Window could not be created! error: " << SDL_GetError() << "\n";
+        return -2;
 	}
 	// create renderer for window
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	if (gRenderer == NULL) {
-		std::cout << "Renderer could not be created. error: " << SDL_GetError() << "\n";
-        return false;
+		//std::cout << "Renderer could not be created. error: " << SDL_GetError() << "\n";
+        return -3;
 	}
 
 	SDL_SetRenderDrawColor(gRenderer, 0xff, 0xff, 0xff, 0xff);
@@ -129,15 +131,15 @@ bool initSDL() {
 		((uint8_t *)GT)[i] = reverse8(((uint8_t *)GT)[i]);
 	}
 	
-
 	memset(CT[0],BBlack+FWhite,sizeof(CT[0]));
 	memset(CT[1],BBlack+FWhite,sizeof(CT[1]));
 	memset(CT[2],BBlack+FWhite,sizeof(CT[2]));
 	
-    return true;
+    return 0;
 }
 
 void closeSDL() {
+	
 	SDL_DestroyTexture(tex);
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
@@ -148,16 +150,20 @@ void closeSDL() {
 
 RGB framebuffer[TEX_HEIGHT][TEX_WIDTH];
 
-bool keys[256];
+uint8_t keys[256];
 
-int mainLoop() {
-	if (!initSDL()) {
-		std::cout << "Failed to initialize!" << std::endl;
+uint8_t mainLoop() {
+
+	printf("aa\n");
+	
+	if (initSDL()<0) {
+		printf("Failed to initialize SDL!\n");
 		return -1;
 	}
 			
-	while (updateLoop()) {
+	while (updateLoop()>=0) {
 		
+
 		
 		SDL_Event e;
 		// handle event on queue
@@ -168,12 +174,12 @@ int mainLoop() {
 				case SDL_QUIT:
 					return 0;
 				case SDL_KEYDOWN:
-					std::cout << "UP: " << e.key.keysym.sym%256 << std::endl;
-					keys[e.key.keysym.sym%256] = true;
+					//std::cout << "UP: " << e.key.keysym.sym%256 << std::endl;
+					keys[e.key.keysym.sym%256] = 0x01;
 					break;
                 case SDL_KEYUP:
-					std::cout << "DOWN: " << e.key.keysym.sym%256 << std::endl;
-					keys[e.key.keysym.sym%256] = false;
+					//std::cout << "DOWN: " << e.key.keysym.sym%256 << std::endl;
+					keys[e.key.keysym.sym%256] = 0x00;
                     break;
 			}
 		}
@@ -249,7 +255,8 @@ int mainLoop() {
 		
 		//std::cout << "Frame! (" << (SDL_GetTicks()-ticksStart) << ")" << std::endl;
 		
-		uint32_t delay = std::min(SDL_GetTicks()-ticksStart,uint32_t(1000/60-1));
+		uint32_t delay = SDL_GetTicks()-ticksStart;
+		if (delay>(1000/60-1)) delay = (1000/60-1);
 		SDL_Delay(1000/60-delay);
 	}    
 	closeSDL();
